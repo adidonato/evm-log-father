@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="evm-log-father" width="200">
+</p>
+
 # evm-log-father
 
 Fast EVM log decoding library with Python bindings.
