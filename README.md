@@ -2,10 +2,16 @@
 
 Fast EVM log decoding library with Python bindings.
 
+## Performance
+
+![Benchmark Results](assets/benchmark.png)
+
+**400-500k logs/second** with parallel decoding on large parquet files.
+
 ## Features
 
 - Decode Ethereum event logs using alloy's dynamic ABI
-- Read logs from parquet files
+- Read logs from parquet files (multiple schema formats supported)
 - Parallel decoding with rayon
 - Python bindings via PyO3
 - CLI for quick testing
@@ -77,15 +83,25 @@ evm-log-father decode \
 evm-log-father info --event "Transfer(address indexed from, address indexed to, uint256 value)"
 ```
 
-## Parquet Schema
+## Parquet Schema Support
 
-Expected columns:
-- `block_number`: u64
-- `tx_hash`: string
-- `log_index`: u32
-- `contract` or `address`: string
-- `topic0`, `topic1`, `topic2`, `topic3`: string
-- `data`: binary
+Flexible schema support for various parquet formats:
+
+### Column Names
+Both snake_case and camelCase supported:
+- `block_number` / `blockNumber`
+- `transaction_hash` / `transactionHash` / `tx_hash`
+- `log_index` / `logIndex`
+- `contract` / `address`
+
+### Topics Format
+- Individual columns: `topic0`, `topic1`, `topic2`, `topic3`
+- List column: `topics` (Spark format)
+
+### Data Types
+- `block_number`: u64 or i64
+- `log_index`: u32, u64, or i64
+- `data`: binary or hex string
 
 ## Benchmarking
 

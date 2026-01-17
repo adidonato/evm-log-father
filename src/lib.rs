@@ -317,6 +317,7 @@ mod python {
 
     /// Decode a single log from topics and data.
     #[pyfunction]
+    #[allow(clippy::too_many_arguments)]
     fn decode_log_py(
         py: Python<'_>,
         schema: &PyEventSchema,
