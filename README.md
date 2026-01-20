@@ -16,6 +16,7 @@ Fast EVM log decoding library with Python bindings.
 
 - Decode Ethereum event logs using alloy's dynamic ABI
 - Read logs from parquet files (multiple schema formats supported)
+- Batch decode raw logs from any source (RPC, databases, etc.)
 - Parallel decoding with rayon
 - Python bindings via PyO3
 - CLI for quick testing
@@ -47,7 +48,7 @@ evm-log-father = "0.1"
 ### Python
 
 ```python
-from evm_log_father import EventSchema, decode_parquet
+from evm_log_father import EventSchema, decode_parquet, decode_logs
 
 # Create schema from event signature
 schema = EventSchema("Transfer(address indexed from, address indexed to, uint256 value)")
@@ -57,6 +58,19 @@ logs = decode_parquet("transfers.parquet", schema, parallel=True)
 
 for log in logs:
     print(f"Block {log['block_number']}: {log['params']['from']} -> {log['params']['to']}")
+
+# Batch decode raw logs (e.g. from RPC or other sources)
+raw_logs = [
+    {
+        "topics": ["0xddf252ad...", "0x000...sender", "0x000...receiver"],
+        "data": "0x00000000000000000000000000000000000000000000000000000000000f4240",
+        "block_number": 12345678,
+        "tx_hash": "0xabc...",
+        "log_index": 0,
+        "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    }
+]
+decoded = decode_logs(schema, raw_logs, parallel=True)
 ```
 
 ### Rust
