@@ -28,3 +28,4 @@ Thumbs.db
 # Test data
 test_data/*.parquet
 !test_data/.gitkeep
+.claude/
