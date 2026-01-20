@@ -15,16 +15,24 @@ Example:
     ...     print(log["params"]["from"], "->", log["params"]["to"])
 """
 
-from .evm_log_father import EventSchema, decode_log_py, decode_parquet_py
+from .evm_log_father import (
+    EventSchema,
+    decode_log_py,
+    decode_logs_py,
+    decode_parquet_py,
+)
 
 # Re-export with nicer names
 decode_log = decode_log_py
+decode_logs = decode_logs_py
 decode_parquet = decode_parquet_py
 
 __all__ = [
     "EventSchema",
     "decode_log",
+    "decode_logs",
     "decode_parquet",
     "decode_log_py",
+    "decode_logs_py",
     "decode_parquet_py",
 ]

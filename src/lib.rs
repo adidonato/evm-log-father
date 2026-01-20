@@ -274,7 +274,7 @@ pub fn decode_logs_parallel(schema: &EventSchema, raw_logs: &[RawLog]) -> Vec<De
 mod python {
     use super::*;
     use pyo3::prelude::*;
-    use pyo3::types::{PyBytes, PyDict, PyList};
+    use pyo3::types::{PyBytes, PyDict, PyList, PyString};
 
     #[pyclass(name = "EventSchema")]
     struct PyEventSchema {
@@ -375,6 +375,110 @@ mod python {
         Ok(result.into())
     }
 
+    /// Decode a batch of raw logs.
+    ///
+    /// Args:
+    ///     schema: EventSchema to use for decoding
+    ///     raw_logs: List of dicts with keys: topics, data, block_number, tx_hash, log_index, contract
+    ///     parallel: If True, use parallel decoding with rayon (default: True)
+    ///
+    /// Returns:
+    ///     List of decoded log dicts
+    #[pyfunction]
+    #[pyo3(signature = (schema, raw_logs, parallel=true))]
+    fn decode_logs_py(
+        py: Python<'_>,
+        schema: &PyEventSchema,
+        raw_logs: &Bound<'_, PyList>,
+        parallel: bool,
+    ) -> PyResult<Py<PyList>> {
+        // Convert Python list of dicts to Vec<RawLog>
+        let mut logs: Vec<RawLog> = Vec::with_capacity(raw_logs.len());
+
+        for item in raw_logs.iter() {
+            let dict = item
+                .downcast::<PyDict>()
+                .map_err(|_| pyo3::exceptions::PyTypeError::new_err("Expected list of dicts"))?;
+
+            // Extract topics
+            let topics_obj = dict
+                .get_item("topics")?
+                .ok_or_else(|| pyo3::exceptions::PyKeyError::new_err("Missing 'topics' key"))?;
+            let topics_list = topics_obj
+                .downcast::<PyList>()
+                .map_err(|_| pyo3::exceptions::PyTypeError::new_err("'topics' must be a list"))?;
+            let topics: Vec<String> = topics_list
+                .iter()
+                .map(|t| t.extract::<String>())
+                .collect::<PyResult<Vec<_>>>()?;
+
+            // Extract data (bytes or hex string)
+            let data_obj = dict
+                .get_item("data")?
+                .ok_or_else(|| pyo3::exceptions::PyKeyError::new_err("Missing 'data' key"))?;
+            let data: Vec<u8> = if let Ok(bytes) = data_obj.downcast::<PyBytes>() {
+                bytes.as_bytes().to_vec()
+            } else if let Ok(s) = data_obj.downcast::<PyString>() {
+                let hex_str = s.to_str()?;
+                let hex_str = hex_str.strip_prefix("0x").unwrap_or(hex_str);
+                hex::decode(hex_str).map_err(|e| {
+                    pyo3::exceptions::PyValueError::new_err(format!("Invalid hex data: {}", e))
+                })?
+            } else {
+                return Err(pyo3::exceptions::PyTypeError::new_err(
+                    "'data' must be bytes or hex string",
+                ));
+            };
+
+            // Extract optional metadata fields with defaults
+            let block_number: u64 = dict
+                .get_item("block_number")?
+                .map(|v| v.extract())
+                .transpose()?
+                .unwrap_or(0);
+            let tx_hash: String = dict
+                .get_item("tx_hash")?
+                .map(|v| v.extract())
+                .transpose()?
+                .unwrap_or_default();
+            let log_index: u32 = dict
+                .get_item("log_index")?
+                .map(|v| v.extract())
+                .transpose()?
+                .unwrap_or(0);
+            let contract: String = dict
+                .get_item("contract")?
+                .map(|v| v.extract())
+                .transpose()?
+                .unwrap_or_default();
+
+            logs.push(RawLog {
+                block_number,
+                tx_hash,
+                log_index,
+                contract,
+                topics,
+                data,
+            });
+        }
+
+        // Decode logs
+        let decoded = if parallel {
+            decode_logs_parallel(&schema.inner, &logs)
+        } else {
+            decode_logs(&schema.inner, &logs)
+        };
+
+        // Convert to Python list of dicts
+        let result = PyList::empty(py);
+        for log in &decoded {
+            let dict = decoded_to_dict(py, log)?;
+            result.append(dict)?;
+        }
+
+        Ok(result.into())
+    }
+
     fn decoded_to_dict(py: Python<'_>, log: &DecodedLog) -> PyResult<Py<PyDict>> {
         let dict = PyDict::new(py);
         dict.set_item("block_number", log.block_number)?;
@@ -395,6 +499,7 @@ mod python {
     fn evm_log_father(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m.add_class::<PyEventSchema>()?;
         m.add_function(wrap_pyfunction!(decode_log_py, m)?)?;
+        m.add_function(wrap_pyfunction!(decode_logs_py, m)?)?;
         m.add_function(wrap_pyfunction!(decode_parquet_py, m)?)?;
         Ok(())
     }
