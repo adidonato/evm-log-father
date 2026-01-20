@@ -1,10 +1,10 @@
 [package]
 name = "evm-log-father"
-version = "0.1.0"
-edition = "2024"
+version = "0.2.0"
+edition = "2021"
 description = "Fast EVM log decoding library with Python bindings"
-repository = "https://github.com/bilinearlabs/evm-log-father"
-homepage = "https://www.bilinearlabs.io"
+repository = "https://github.com/adidonato/evm-log-father"
+homepage = "https://rehashed.work"
 readme = "README.md"
 keywords = ["evm", "ethereum", "abi", "decoding", "logs"]
 license = "MIT"

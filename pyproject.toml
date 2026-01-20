@@ -4,12 +4,12 @@ build-backend = "maturin"
 
 [project]
 name = "evm-log-father"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fast EVM log decoding library"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-authors = [{ name = "Bilinear Labs" }]
+authors = [{ name = "adidonato" }]
 keywords = ["ethereum", "evm", "abi", "decoding", "logs", "blockchain"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -26,8 +26,8 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/bilinearlabs/evm-log-father"
-Homepage = "https://www.bilinearlabs.io"
+Repository = "https://github.com/adidonato/evm-log-father"
+Homepage = "https://rehashed.work"
 
 [tool.maturin]
 features = ["python"]

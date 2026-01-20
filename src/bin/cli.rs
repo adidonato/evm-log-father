@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Bilinear Labs
+// Copyright (c) 2026 adidonato
 // SPDX-License-Identifier: MIT
 
 //! CLI for evm-log-father.
@@ -14,7 +14,7 @@ use std::time::Instant;
 
 #[derive(Parser)]
 #[command(name = "evm-log-father")]
-#[command(author = "Bilinear Labs")]
+#[command(author = "adidonato")]
 #[command(version)]
 #[command(about = "Fast EVM log decoder", long_about = None)]
 struct Cli {

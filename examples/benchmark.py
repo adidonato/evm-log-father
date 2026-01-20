@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2026 Bilinear Labs
+# Copyright (c) 2026 adidonato
 # SPDX-License-Identifier: MIT
 
 """
